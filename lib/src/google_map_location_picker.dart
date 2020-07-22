@@ -309,8 +309,7 @@ class LocationPickerState extends State<LocationPicker> {
     if (response.statusCode == 200) {
       Map<String, dynamic> responseJson = jsonDecode(response.body);
 
-      String road;
-
+      String road, city, state, postalCode, country;
       if (responseJson['status'] == 'REQUEST_DENIED') {
         road = 'REQUEST DENIED = please see log for more details';
         print(responseJson['error_message']);
@@ -318,14 +317,26 @@ class LocationPickerState extends State<LocationPicker> {
         road =
             responseJson['results'][0]['address_components'][0]['short_name'];
       }
-
+      for (var component in responseJson['results'][0]['address_components']){
+        if ((component['types'] as List<String>).contains('locality'))
+          city = component['long_name'];
+        if ((component['types'] as List<String>).contains('country'))
+          country = component['long_name'];
+        if ((component['types'] as List<String>).contains('administrative_area_level_1'))
+          state = component['long_name'];
+        if ((component['types'] as List<String>).contains('postal_code'))
+          postalCode = component['long_name'];
+      }
 //      String locality =
 //          responseJson['results'][0]['address_components'][1]['short_name'];
 
       setState(() {
-        locationResult = LocationResult();
-        locationResult.address = road;
-        locationResult.latLng = latLng;
+        locationResult = LocationResult(address: road,
+         latLng: latLng,
+          city: city,
+          country: country,
+          postalCode: postalCode,
+          state: state);
       });
     }
   }

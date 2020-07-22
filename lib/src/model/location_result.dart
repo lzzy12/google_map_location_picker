@@ -10,7 +10,22 @@ class LocationResult {
   /// Latitude/Longitude of the selected location.
   LatLng latLng;
 
-  LocationResult({this.latLng, this.address});
+  // City of the selected location
+  String city;
+  // State of the selected location
+  String state;
+  // Postal code of the selected location
+  String postalCode;
+  // Country, in which the location is a part of.
+  String country;
+
+  LocationResult(
+      {this.latLng,
+      this.address,
+      this.city,
+      this.postalCode,
+      this.state,
+      this.country});
 
   @override
   String toString() {
