@@ -132,15 +132,17 @@ class MapPickerState extends State<MapPicker> {
       _checkGeolocationPermission();
     }
     return Scaffold(
-      body: Builder(builder: (context) {
-        if (_currentPosition == null &&
-            widget.automaticallyAnimateToCurrentLocation &&
-            widget.requiredGPS) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: SafeArea(
+        child: Builder(builder: (context) {
+          if (_currentPosition == null &&
+              widget.automaticallyAnimateToCurrentLocation &&
+              widget.requiredGPS) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        return buildMap();
-      }),
+          return buildMap();
+        }),
+      ),
     );
   }
 
@@ -149,7 +151,7 @@ class MapPickerState extends State<MapPicker> {
       child: Stack(
         children: <Widget>[
           GoogleMap(
-            myLocationButtonEnabled: false,
+            myLocationButtonEnabled: true,
             initialCameraPosition: CameraPosition(
               target: widget.initialCenter,
               zoom: widget.initialZoom,
@@ -189,81 +191,22 @@ class MapPickerState extends State<MapPicker> {
             onMyLocationPressed: _initCurrentLocation,
           ),
           pin(),
-          locationCard(),
+          _LocationCard(
+            onFinishPressed: (address) {
+              Navigator.of(context).pop({
+                'location': LocationResult(
+                  latLng: LocationProvider.of(context, listen: false)
+                      .lastIdleLocation,
+                  address: address,
+                )
+              });
+            },
+            apiKey: widget.apiKey,
+            resultCardConfirmIcon: widget.resultCardConfirmIcon,
+          ),
         ],
       ),
     );
-  }
-
-  Widget locationCard() {
-    return Align(
-      alignment: widget.resultCardAlignment ?? Alignment.bottomCenter,
-      child: Padding(
-        padding: widget.resultCardPadding ?? EdgeInsets.all(16.0),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: Consumer<LocationProvider>(
-              builder: (context, locationProvider, _) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Flexible(
-                    flex: 20,
-                    child: FutureLoadingBuilder<String>(
-                        future: getAddress(locationProvider.lastIdleLocation),
-                        mutable: true,
-                        loadingIndicator: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            CircularProgressIndicator(),
-                          ],
-                        ),
-                        builder: (context, address) {
-                          _address = address;
-                          return Text(
-                            address ?? 'Unnamed place',
-                            style: TextStyle(fontSize: 18),
-                          );
-                        }),
-                  ),
-                  Spacer(),
-                  FloatingActionButton(
-                    onPressed: () {
-                      Navigator.of(context).pop({
-                        'location': LocationResult(
-                          latLng: locationProvider.lastIdleLocation,
-                          address: _address,
-                        )
-                      });
-                    },
-                    child: widget.resultCardConfirmIcon ??
-                        Icon(Icons.arrow_forward),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  Future<String> getAddress(LatLng location) async {
-    try {
-      var endPoint =
-          'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location?.latitude},${location?.longitude}&key=${widget.apiKey}';
-      var response = jsonDecode((await http.get(endPoint,
-              headers: await LocationUtils.getAppHeaders()))
-          .body);
-
-      return response['results'][0]['formatted_address'];
-    } catch (e) {
-      print(e);
-    }
-
-    return null;
   }
 
   Widget pin() {
@@ -369,6 +312,87 @@ class MapPickerState extends State<MapPicker> {
         );
       }
     }
+  }
+}
+
+class _LocationCard extends StatefulWidget {
+  final String apiKey;
+  final Function(String) onFinishPressed;
+  final Icon resultCardConfirmIcon;
+
+  _LocationCard(
+      {this.apiKey, this.onFinishPressed, this.resultCardConfirmIcon});
+
+  @override
+  __LocationCardState createState() => __LocationCardState();
+}
+
+class __LocationCardState extends State<_LocationCard> {
+  String _address;
+
+  Future<String> getAddress(LatLng location) async {
+    try {
+      var endPoint =
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location?.latitude},${location?.longitude}&key=${widget.apiKey}';
+      var response = jsonDecode((await http.get(endPoint,
+              headers: await LocationUtils.getAppHeaders()))
+          .body);
+
+      return response['results'][0]['formatted_address'];
+    } catch (e) {
+      print(e);
+    }
+
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment:Alignment.bottomCenter,
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          child: Consumer<LocationProvider>(
+              builder: (context, locationProvider, _) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Flexible(
+                    flex: 20,
+                    child: FutureLoadingBuilder<String>(
+                        future: getAddress(locationProvider.lastIdleLocation),
+                        mutable: true,
+                        loadingIndicator: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            CircularProgressIndicator(),
+                          ],
+                        ),
+                        builder: (context, address) {
+                          _address = address;
+                          return Text(
+                            address ?? 'Unnamed place',
+                            style: TextStyle(fontSize: 18),
+                          );
+                        }),
+                  ),
+                  Spacer(),
+                  FloatingActionButton(
+                    onPressed: () => widget.onFinishPressed(_address),
+                    child: widget.resultCardConfirmIcon ??
+                        Icon(Icons.arrow_forward),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ),
+      ),
+    );
   }
 }
 

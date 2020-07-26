@@ -65,6 +65,13 @@ class SearchInputState extends State<SearchInput> {
       decoration: widget.boxDecoration ??
           BoxDecoration(
             borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey,
+                offset: Offset(0.0, 1.0), //(x,y)
+                blurRadius: 6.0,
+              ),
+            ],
             color: Theme.of(context).brightness == Brightness.dark
                 ? Colors.black54
                 : Colors.white,
@@ -72,6 +79,7 @@ class SearchInputState extends State<SearchInput> {
       padding: EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: <Widget>[
+          SizedBox(width: 8),
           Icon(Icons.search),
           SizedBox(width: 8),
           Expanded(

@@ -97,8 +97,8 @@ class LocationPickerState extends State<LocationPicker> {
     if (context == null) return;
 
     clearOverlay();
-
-    setState(() => hasSearchTerm = place.length > 0);
+//    if (place.length > 0)
+//      setState(() => hasSearchTerm = place.length > 0);
 
     if (place.length < 1) return;
 
