@@ -27,7 +27,7 @@ class MapPicker extends StatefulWidget {
     this.requiredGPS,
     this.myLocationButtonEnabled,
     this.layersButtonEnabled,
-    this.automaticallyAnimateToCurrentLocation,
+    this.automaticallyAnimateToCurrentLocation = true,
     this.mapStylePath,
     this.appBarColor,
     this.searchBarBoxDecoration,
@@ -36,6 +36,8 @@ class MapPicker extends StatefulWidget {
     this.resultCardAlignment,
     this.resultCardDecoration,
     this.resultCardPadding,
+    this.showLocationCard = true,
+    this.markers
   }) : super(key: key);
 
   final String apiKey;
@@ -57,7 +59,8 @@ class MapPicker extends StatefulWidget {
   final Alignment resultCardAlignment;
   final Decoration resultCardDecoration;
   final EdgeInsets resultCardPadding;
-
+  final bool showLocationCard;
+  final Set<Marker> markers;
   @override
   MapPickerState createState() => MapPickerState();
 }
@@ -116,6 +119,7 @@ class MapPickerState extends State<MapPicker> {
   @override
   void initState() {
     super.initState();
+    print('lol: ${ widget.automaticallyAnimateToCurrentLocation}');
     if (widget.automaticallyAnimateToCurrentLocation) _initCurrentLocation();
 
     if (widget.mapStylePath != null) {
@@ -152,6 +156,7 @@ class MapPickerState extends State<MapPicker> {
         children: <Widget>[
           GoogleMap(
             myLocationButtonEnabled: true,
+            markers: widget.markers,
             initialCameraPosition: CameraPosition(
               target: widget.initialCenter,
               zoom: widget.initialZoom,
@@ -191,19 +196,21 @@ class MapPickerState extends State<MapPicker> {
             onMyLocationPressed: _initCurrentLocation,
           ),
           pin(),
-          _LocationCard(
-            onFinishPressed: (address) {
-              Navigator.of(context).pop({
-                'location': LocationResult(
-                  latLng: LocationProvider.of(context, listen: false)
-                      .lastIdleLocation,
-                  address: address,
+          widget.showLocationCard == true
+              ? _LocationCard(
+                  onFinishPressed: (address) {
+                    Navigator.of(context).pop({
+                      'location': LocationResult(
+                        latLng: LocationProvider.of(context, listen: false)
+                            .lastIdleLocation,
+                        address: address,
+                      )
+                    });
+                  },
+                  apiKey: widget.apiKey,
+                  resultCardConfirmIcon: widget.resultCardConfirmIcon,
                 )
-              });
-            },
-            apiKey: widget.apiKey,
-            resultCardConfirmIcon: widget.resultCardConfirmIcon,
-          ),
+              : SizedBox(),
         ],
       ),
     );
@@ -349,7 +356,7 @@ class __LocationCardState extends State<_LocationCard> {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment:Alignment.bottomCenter,
+      alignment: Alignment.bottomCenter,
       child: Padding(
         padding: EdgeInsets.all(16.0),
         child: Card(

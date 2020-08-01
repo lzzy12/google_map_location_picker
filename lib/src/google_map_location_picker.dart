@@ -21,21 +21,25 @@ class LocationPicker extends StatefulWidget {
   LocationPicker(
     this.apiKey, {
     Key key,
-    this.initialCenter,
-    this.initialZoom,
-    this.requiredGPS,
-    this.myLocationButtonEnabled,
-    this.layersButtonEnabled,
-    this.automaticallyAnimateToCurrentLocation,
+    this.initialCenter = const LatLng(45.521563, -122.677433),
+    this.initialZoom = 16,
+    this.requiredGPS = true,
+    this.myLocationButtonEnabled = false,
+    this.layersButtonEnabled = false,
+    this.automaticallyAnimateToCurrentLocation = true,
     this.mapStylePath,
-    this.appBarColor,
+    this.appBarColor = Colors.transparent,
     this.searchBarBoxDecoration,
     this.hintText,
     this.resultCardConfirmIcon,
     this.resultCardAlignment,
     this.resultCardDecoration,
     this.resultCardPadding,
-  });
+    this.showLocationCard = true,
+    this.markers,
+  }){
+    print(this.showLocationCard);
+  }
 
   final String apiKey;
 
@@ -56,6 +60,8 @@ class LocationPicker extends StatefulWidget {
   final Alignment resultCardAlignment;
   final Decoration resultCardDecoration;
   final EdgeInsets resultCardPadding;
+  final bool showLocationCard;
+  final Set<Marker> markers;
 
   @override
   LocationPickerState createState() => LocationPickerState();
@@ -317,12 +323,13 @@ class LocationPickerState extends State<LocationPicker> {
         road =
             responseJson['results'][0]['address_components'][0]['short_name'];
       }
-      for (var component in responseJson['results'][0]['address_components']){
+      for (var component in responseJson['results'][0]['address_components']) {
         if ((component['types'] as List<String>).contains('locality'))
           city = component['long_name'];
         if ((component['types'] as List<String>).contains('country'))
           country = component['long_name'];
-        if ((component['types'] as List<String>).contains('administrative_area_level_1'))
+        if ((component['types'] as List<String>)
+            .contains('administrative_area_level_1'))
           state = component['long_name'];
         if ((component['types'] as List<String>).contains('postal_code'))
           postalCode = component['long_name'];
@@ -331,12 +338,13 @@ class LocationPickerState extends State<LocationPicker> {
 //          responseJson['results'][0]['address_components'][1]['short_name'];
 
       setState(() {
-        locationResult = LocationResult(address: road,
-         latLng: latLng,
-          city: city,
-          country: country,
-          postalCode: postalCode,
-          state: state);
+        locationResult = LocationResult(
+            address: road,
+            latLng: latLng,
+            city: city,
+            country: country,
+            postalCode: postalCode,
+            state: state);
       });
     }
   }
@@ -404,6 +412,8 @@ class LocationPickerState extends State<LocationPicker> {
             resultCardAlignment: widget.resultCardAlignment,
             resultCardDecoration: widget.resultCardDecoration,
             resultCardPadding: widget.resultCardPadding,
+            showLocationCard: widget.showLocationCard,
+            markers: widget.markers,
             key: mapKey,
           ),
         );
@@ -439,6 +449,8 @@ Future<LocationResult> showLocationPicker(
   AlignmentGeometry resultCardAlignment,
   EdgeInsetsGeometry resultCardPadding,
   Decoration resultCardDecoration,
+  bool showLocationCard = false,
+  Set<Marker> markers,
 }) async {
   final results = await Navigator.of(context).push(
     MaterialPageRoute<dynamic>(
@@ -460,6 +472,8 @@ Future<LocationResult> showLocationPicker(
           resultCardAlignment: resultCardAlignment,
           resultCardPadding: resultCardPadding,
           resultCardDecoration: resultCardDecoration,
+          showLocationCard: showLocationCard,
+          markers: markers,
         );
       },
     ),
