@@ -119,7 +119,6 @@ class MapPickerState extends State<MapPicker> {
   @override
   void initState() {
     super.initState();
-    print('lol: ${ widget.automaticallyAnimateToCurrentLocation}');
     if (widget.automaticallyAnimateToCurrentLocation) _initCurrentLocation();
 
     if (widget.mapStylePath != null) {
@@ -155,7 +154,7 @@ class MapPickerState extends State<MapPicker> {
       child: Stack(
         children: <Widget>[
           GoogleMap(
-            myLocationButtonEnabled: true,
+            myLocationButtonEnabled: widget.myLocationButtonEnabled,
             markers: widget.markers,
             initialCameraPosition: CameraPosition(
               target: widget.initialCenter,
