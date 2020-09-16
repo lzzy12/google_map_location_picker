@@ -37,7 +37,8 @@ class LocationPicker extends StatefulWidget {
     this.resultCardPadding,
     this.showLocationCard = true,
     this.markers,
-  }){
+    this.onLocationChanged,
+  }) {
     print(this.showLocationCard);
   }
 
@@ -62,6 +63,7 @@ class LocationPicker extends StatefulWidget {
   final EdgeInsets resultCardPadding;
   final bool showLocationCard;
   final Set<Marker> markers;
+  final Function(LatLng) onLocationChanged;
 
   @override
   LocationPickerState createState() => LocationPickerState();
@@ -324,14 +326,14 @@ class LocationPickerState extends State<LocationPicker> {
             responseJson['results'][0]['address_components'][0]['short_name'];
       }
       for (var component in responseJson['results'][0]['address_components']) {
-        if ((component['types'] as List<String>).contains('locality'))
+        if (List<String>.from(component['types']).contains('locality'))
           city = component['long_name'];
-        if ((component['types'] as List<String>).contains('country'))
+        if (List<String>.from(component['types']).contains('country'))
           country = component['long_name'];
-        if ((component['types'] as List<String>)
+        if (List<String>.from(component['types'])
             .contains('administrative_area_level_1'))
           state = component['long_name'];
-        if ((component['types'] as List<String>).contains('postal_code'))
+        if (List<String>.from(component['types']).contains('postal_code'))
           postalCode = component['long_name'];
       }
 //      String locality =
@@ -352,6 +354,7 @@ class LocationPickerState extends State<LocationPicker> {
   /// Moves the camera to the provided location and updates other UI features to
   /// match the location.
   void moveToLocation(LatLng latLng) {
+    widget.onLocationChanged(latLng);
     mapKey.currentState.mapController.future.then((controller) {
       controller.animateCamera(
         CameraUpdate.newCameraPosition(
