@@ -354,7 +354,7 @@ class LocationPickerState extends State<LocationPicker> {
   /// Moves the camera to the provided location and updates other UI features to
   /// match the location.
   void moveToLocation(LatLng latLng) {
-    widget.onLocationChanged(latLng);
+    if (widget.onLocationChanged != null) widget.onLocationChanged(latLng);
     mapKey.currentState.mapController.future.then((controller) {
       controller.animateCamera(
         CameraUpdate.newCameraPosition(
